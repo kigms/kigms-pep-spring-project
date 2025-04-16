@@ -5,12 +5,18 @@ import java.util.ArrayList;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+
 import com.example.service.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.entity.*;
 import com.example.exception.*;
 
@@ -78,7 +84,32 @@ public class SocialMediaController {
     }
 
     @GetMapping("/messages/{messageId}")
-    public ResponseEntity<?> getMessageById(@RequestParam String messageId){
-        Message message = messageService.get
+    public ResponseEntity<?> getMessageById(@PathVariable Integer messageId){
+        Message message = messageService.getMessageById(messageId);
+        return ResponseEntity.ok(message);
+    }
+
+    @DeleteMapping("/messages/{messageId}")
+    public ResponseEntity<?> deleteMessageById(@PathVariable Integer messageId){
+        Integer rowsDeleted = messageService.deleteMessageById(messageId);
+        return ResponseEntity.ok(rowsDeleted);
+    }
+
+    @PatchMapping("/messages/{messageId}")
+    public ResponseEntity<?> patchMessageById(@PathVariable Integer messageId, @RequestBody String body){
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(body);
+            String messageText = root.path("messageText").asText(null);
+
+            Integer rowsPatched = messageService.updateMessageById(messageId, messageText);
+            return ResponseEntity.ok(rowsPatched);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.badRequest().body("Invalid JSON format.");
+        } catch(InvalidMessageException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch(MessageNotFoundException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }
