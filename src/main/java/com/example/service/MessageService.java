@@ -62,4 +62,9 @@ public class MessageService {
         else
             throw new MessageNotFoundException();
     }
+
+    public ArrayList<Message> getAllMessagesByAccountId(Integer accountId){
+        ArrayList<Message> found = messageRepository.findAllByPostedBy(accountId);
+        return found;
+    }
 }
