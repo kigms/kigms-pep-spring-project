@@ -44,7 +44,10 @@ public class MessageService {
     @Transactional
     public Integer deleteMessageById(Integer messageId){
         Integer deleted = messageRepository.deleteByMessageId(messageId);
-        return deleted;
+        if(deleted==0)
+            return null;
+        else   
+            return deleted;
     }
 
     @Transactional
